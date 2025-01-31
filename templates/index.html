@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Classification</title>
+    <style>
+{#      giving structure to the drop box and images  #}
+        #drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 20px;
+            width: 300px;
+            height: 200px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .image-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .image-container img {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container" id="image-container">
+{#        Align the images here#}
+    </div>
+    <div id="drop-area">
+{#        Drop box#}
+        <h3>Drag and Drop an Image</h3>
+        <input type="file" id="fileElem" accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+        <label class="button" for="fileElem">Select a file</label>
+    </div>
+{#    Display results#}
+    <div id="results"></div>
+    <script>
+        // get the containers and drop area to handle the images
+        let dropArea = document.getElementById('drop-area');
+        let imageContainer = document.getElementById('image-container');
+
+        // use fetch to get the images from the server and display them. they
+        // are allowed to be dragged and dropped using the dragstart event.
+        fetch('/images')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(imagePath => {
+                    let img = document.createElement('img');
+                    img.src = imagePath;
+                    img.draggable = true;
+                    img.addEventListener('dragstart', (event) => {
+                        event.dataTransfer.setData('text/plain', imagePath);
+                    });
+                    imageContainer.appendChild(img);
+                });
+            });
+
+        // this prevents the default behavior of the browser so that the
+        // image is not opened in the browser when it is dropped.
+        dropArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+        });
+
+        // this gets the image path from the dataTransfer object when it is
+        // dropped and sends it to the handleImage function.
+        dropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            let imagePath = event.dataTransfer.getData('text/plain');
+            handleImage(imagePath);
+        });
+
+        // this function is called when an image is selected from the file.
+        function handleImage(imagePath) {
+            fetch(imagePath)
+                // blob is a binary large object that represents the image data.
+                .then(response => response.blob())
+                .then(blob => {
+                    let formData = new FormData();
+                    formData.append('file', blob, imagePath);
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => displayResults(data))
+                        // catch any error and logs it to the console.
+                    .catch(error => console.error('Error:', error));
+                });
+        }
+
+        // this function is called when an image is selected from the file
+        // and it displays the classification results.
+        function displayResults(data) {
+            let resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>Classification Results:</h3>';
+            for (let category in data) {
+                resultsDiv.innerHTML += `<p>${category}: ${(data[category] * 100).toFixed(2)}%</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
