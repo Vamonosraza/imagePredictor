@@ -3,3 +3,4 @@ Flask-Bootstrap
 transformers
 Pillow
 torch
+gunicorn
