@@ -3,7 +3,6 @@ from flask_bootstrap import Bootstrap
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import os
-import torch
 
 app = Flask(__name__)
 # style the app with bootstrap
