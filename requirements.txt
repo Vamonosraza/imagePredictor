@@ -2,3 +2,4 @@ Flask
 Flask-Bootstrap
 transformers
 Pillow
+torch
