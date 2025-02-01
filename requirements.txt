@@ -3,6 +3,5 @@ Flask-Bootstrap
 transformers
 Pillow
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.11.0+cpu
---find-links https://download.pytorch.org/whl/torch_stable.html
-torchvision==0.12.0+cpu
+torch==2.0.0+cpu
+torchvision==0.15.0+cpu
