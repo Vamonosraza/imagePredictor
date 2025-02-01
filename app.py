@@ -1,10 +1,13 @@
 from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask_bootstrap import Bootstrap
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import os
 import torch
 
 app = Flask(__name__)
+# style the app with bootstrap
+Bootstrap(app)
 
 # load the CLIP model and processor for inference
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -45,12 +48,15 @@ def upload():
     if file.filename == '':
         return jsonify({'error': 'No selected file'})
     if file:
+        custom_category = request.form.get('customCategory', '').strip()
+        all_categories = categories +[custom_category] if custom_category else categories
+
         image = Image.open(file.stream)
-        inputs = processor(text=categories, images=image, return_tensors="pt", padding=True)
+        inputs = processor(text=all_categories, images=image, return_tensors="pt", padding=True)
         outputs = model(**inputs)
         logits_per_image = outputs.logits_per_image
         probs = logits_per_image.softmax(dim=1)
-        results = {category: prob.item() for category, prob in zip(categories, probs[0])}
+        results = {category: prob.item() for category, prob in zip(all_categories, probs[0])}
         return jsonify(results)
 
 if __name__ == '__main__':

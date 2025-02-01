@@ -4,8 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flower Classification</title>
+    <link href="{{  url_for('bootstrap.static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <style>
 {#      giving structure to the drop box and images  #}
+        body{
+            background-color: cadetblue;
+        }
+
+        .results{
+            text-align:center;
+        }
+
+        .highlight{
+            font-weight: bold;
+            color: rebeccapurple;
+        }
+
         #drop-area {
             border: 2px dashed #ccc;
             border-radius: 20px;
@@ -19,6 +33,7 @@
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
+            padding-top: 20px;
         }
         .image-container img {
             width: 150px;
@@ -29,21 +44,47 @@
     </style>
 </head>
 <body>
-    <div class="image-container" id="image-container">
-{#        Align the images here#}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="image-container" id="image-container">
+                    <!-- Images will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div id="drop-area" class="mt-4">
+                    <h3>Drag and Drop an Image</h3>
+                    <input type="file" id="fileElem" accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+                    <label class="btn btn-primary" for="fileElem">Select a file</label>
+                </div>
+            </div>
+        </div>
+{#        <div class="row">#}
+{#            <div class="col-12">#}
+{#                <div class="form-group">#}
+{#                    <label for="customCategories">Enter a custom category:</label>#}
+{#                    <input type="text" id="customCategories" class="form-control" placeholder="e.g., square computer">#}
+{#                </div>#}
+{#                <button class="btn btn-primary" onclick="submitCategory()">Submit Category</button>#}
+{#            </div>#}
+{#        </div>#}
+        <div class="row">
+            <div class="col-12">
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
     </div>
-    <div id="drop-area">
-{#        Drop box#}
-        <h3>Drag and Drop an Image</h3>
-        <input type="file" id="fileElem" accept="image/*" style="display:none" onchange="handleFiles(this.files)">
-        <label class="button" for="fileElem">Select a file</label>
-    </div>
-{#    Display results#}
-    <div id="results"></div>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // get the containers and drop area to handle the images
+        // get the container and the drop area to handle images
         let dropArea = document.getElementById('drop-area');
         let imageContainer = document.getElementById('image-container');
+        let customCategories = '';
 
         // use fetch to get the images from the server and display them. they
         // are allowed to be dragged and dropped using the dragstart event.
@@ -76,6 +117,22 @@
         });
 
         // this function is called when an image is selected from the file.
+        function handleFiles(files) {
+            let file = files[0];
+            let formData = new FormData();
+            formData.append('file', file);
+            formData.append('customCategory', customCategories);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => displayResults(data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        // this function is called when an image is selected from the file.
         function handleImage(imagePath) {
             fetch(imagePath)
                 // blob is a binary large object that represents the image data.
@@ -83,6 +140,7 @@
                 .then(blob => {
                     let formData = new FormData();
                     formData.append('file', blob, imagePath);
+                    formData.append('customCategory', customCategories);
 
                     fetch('/upload', {
                         method: 'POST',
@@ -95,13 +153,40 @@
                 });
         }
 
+        // attempted to include custom categories but it was not working
+        function submitCategory(){
+            let customCategories = document.getElementById('customCategories').value;
+            if (customCategories){
+                alert(`Category "${customCategories}" submitted!`);
+            }else {
+                alert('Please enter a category before submitting.');
+            }
+        }
+
         // this function is called when an image is selected from the file
         // and it displays the classification results.
         function displayResults(data) {
             let resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<h3>Classification Results:</h3>';
-            for (let category in data) {
-                resultsDiv.innerHTML += `<p>${category}: ${(data[category] * 100).toFixed(2)}%</p>`;
+            resultsDiv.innerHTML = '<h3 style="text-decoration: underline;">Classification Results:</h3>';
+            resultsDiv.classList.add('results');
+
+            let maxCategory = null;
+            let maxProb = 0;
+
+            for (let category in data){
+                if (data[category] > maxProb){
+                    maxProb = data[category];
+                    maxCategory = category;
+                }
+            }
+
+            for(let category in data){
+                let resultText = `${category}: ${(data[category] * 100).toFixed(2)}%`;
+                if (category === maxCategory){
+                    resultsDiv.innerHTML += `<p class="highlight">${resultText}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>${resultText}</p>`;
+                }
             }
         }
     </script>
