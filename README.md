@@ -1,3 +1,7 @@
+# link to active page:
+
+ec2-35-88-204-44.us-west-2.compute.amazonaws.com
+
 # Flower Classification
 
 This project is a web application for classifying images of flowers using a machine learning model. The application allows users to upload images, which are then processed and classified into different categories.
