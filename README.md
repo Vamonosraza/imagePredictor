@@ -1,6 +1,6 @@
 # link to active page:
 
-ec2-35-88-204-44.us-west-2.compute.amazonaws.com
+ec2-35-88-204-44.us-west-2.compute.amazonaws.com (No longer active)
 
 # Flower Classification
 
