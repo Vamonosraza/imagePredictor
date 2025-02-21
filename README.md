@@ -18,7 +18,6 @@ This project is a web application for classifying images of flowers using a mach
 - Python
 - Flask
 - HTML/CSS
-- JavaScript
 - Bootstrap
 - Hugging Face Transformers
 - PyTorch
